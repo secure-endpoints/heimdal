@@ -59,7 +59,6 @@ sample_log(krb5_context context,
 	   krb5_const_principal princ)
 {
     char *p = NULL;
-    krb5_error_code ret;
     int which = 0;
 
     /* verify we get called with the right contex tpointer */
@@ -74,7 +73,7 @@ sample_log(krb5_context context,
     assert(code == 0 || stage == KADM5_HOOK_STAGE_POSTCOMMIT);
 
     if (princ)
-	ret = krb5_unparse_name(context, princ, &p);
+	(void) krb5_unparse_name(context, princ, &p);
 
     krb5_warn(context, code, "sample_hook_%d: %s %s hook princ '%s'", which, tag,
 	      stage == KADM5_HOOK_STAGE_PRECOMMIT ? "pre-commit" : "post-commit",
@@ -120,6 +119,19 @@ sample_chpass_hook(krb5_context context,
 		   const char *password)
 {
     return sample_log(context, data, stage, "chpass", code, princ);
+}
+
+static krb5_error_code KRB5_CALLCONV
+sample_chpass_with_key_hook(krb5_context context,
+			    void *data,
+			    enum kadm5_hook_stage stage,
+			    krb5_error_code code,
+			    krb5_const_principal princ,
+			    uint32_t flags,
+			    size_t n_key_data,
+			    krb5_key_data *key_data)
+{
+    return sample_log(context, data, stage, "chpass_with_key", code, princ);
 }
 
 static krb5_error_code KRB5_CALLCONV
@@ -210,6 +222,7 @@ static const kadm5_hook_ftable sample_hook_1 = {
     "sample_hook_1",
     "Heimdal",
     sample_chpass_hook,
+    sample_chpass_with_key_hook,
     sample_create_hook,
     sample_modify_hook,
     sample_delete_hook,
@@ -226,6 +239,7 @@ static const kadm5_hook_ftable sample_hook_2 = {
     "sample_hook_2",
     "Heimdal",
     sample_chpass_hook,
+    sample_chpass_with_key_hook,
     sample_create_hook,
     sample_modify_hook,
     sample_delete_hook,
